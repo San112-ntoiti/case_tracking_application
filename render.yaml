@@ -6,6 +6,7 @@
     dockerContext: ./backend
     plan: free
     healthCheckPath: /api/v1/cases/
+
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
@@ -44,6 +45,7 @@
     dockerContext: ./backend
     plan: free
     startCommand: celery -A config worker --loglevel=info --concurrency=1
+
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
@@ -61,12 +63,6 @@
           type: redis
           name: court-tracker-redis
           property: connectionString
-
-  - type: pserv
-    name: court-tracker-db
-    plan: free
-    databaseName: court_tracker
-    databaseUser: court_tracker_user
 
   - type: redis
     name: court-tracker-redis
@@ -86,3 +82,9 @@
     envVars:
       - key: VITE_API_BASE_URL
         value: https://court-tracker-api.onrender.com/api/v1
+
+databases:
+  - name: court-tracker-db
+    plan: free
+    databaseName: court_tracker
+    user: court_tracker_user
