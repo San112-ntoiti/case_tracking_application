@@ -1,0 +1,88 @@
+﻿services:
+  - type: web
+    name: court-tracker-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/v1/cases/
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: court-tracker-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: court-tracker-redis
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://court-tracker-web.onrender.com"
+      - key: MPESA_ENVIRONMENT
+        value: sandbox
+      - key: MPESA_SHORTCODE
+        value: "174379"
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@courttracker.co.ke
+      - key: AFRICASTALKING_USERNAME
+        value: sandbox
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.console.EmailBackend
+
+  - type: worker
+    name: court-tracker-worker
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    startCommand: celery -A config worker --loglevel=info --concurrency=1
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: court-tracker-api
+          envVarKey: SECRET_KEY
+      - key: DATABASE_URL
+        fromDatabase:
+          name: court-tracker-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: court-tracker-redis
+          property: connectionString
+
+  - type: pserv
+    name: court-tracker-db
+    plan: free
+    databaseName: court_tracker
+    databaseUser: court_tracker_user
+
+  - type: redis
+    name: court-tracker-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
+  - type: web
+    name: court-tracker-web
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    plan: free
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://court-tracker-api.onrender.com/api/v1

@@ -1,0 +1,39 @@
+# Kenya Court Case Tracker — Backend Dependencies
+# Pin major versions; minor/patch upgrades are safe
+
+# Core
+Django==4.2.16
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+psycopg2-binary==2.9.9
+python-decouple==3.8
+
+# API features
+django-cors-headers==4.4.0
+django-filter==24.3
+drf-spectacular==0.27.2
+
+# Async tasks
+celery==5.4.0
+redis==5.1.1
+django-redis==5.4.0
+
+# Notifications
+africastalking==1.2.5
+twilio==9.3.2
+sendgrid==6.11.0
+
+# PDF generation
+reportlab==4.2.2
+weasyprint==62.3
+
+# File handling
+Pillow==10.4.0
+
+# Production
+gunicorn==23.0.0
+whitenoise==6.7.0
+
+# Development
+django-extensions==3.2.3
+dj-database-url==2.1.0
