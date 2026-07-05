@@ -6,7 +6,6 @@
     dockerContext: ./backend
     plan: free
     healthCheckPath: /api/v1/cases/
-
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
@@ -33,8 +32,6 @@
         value: "174379"
       - key: DEFAULT_FROM_EMAIL
         value: noreply@courttracker.co.ke
-      - key: AFRICASTALKING_USERNAME
-        value: sandbox
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.console.EmailBackend
 
@@ -44,8 +41,6 @@
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
-    startCommand: celery -A config worker --loglevel=info --concurrency=1
-
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.production
@@ -68,6 +63,7 @@
     name: court-tracker-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
 
   - type: web
     name: court-tracker-web
