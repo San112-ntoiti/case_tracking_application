@@ -1,5 +1,7 @@
 ﻿#!/usr/bin/env sh
 set -e
+echo "Collecting static files..."
+python manage.py collectstatic --no-input
 echo "Running migrations..."
 python manage.py migrate --no-input
 echo "Seeding data..."
