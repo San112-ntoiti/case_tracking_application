@@ -1,10 +1,10 @@
-﻿#!/usr/bin/env sh
+#!/bin/sh
 set -e
-echo "Collecting static files..."
+echo 'Collecting static files...'
 python manage.py collectstatic --no-input
-echo "Running migrations..."
+echo 'Running migrations...'
 python manage.py migrate --no-input
-echo "Seeding data..."
+echo 'Seeding data...'
 python manage.py seed_data
-echo "Starting gunicorn..."
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120
+echo 'Starting gunicorn...'
+exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
