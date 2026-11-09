@@ -9,10 +9,11 @@ from rest_framework.views import APIView
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
 
 from .serializers import (
     RegisterSerializer, LoginSerializer,
-    UserProfileSerializer, ChangePasswordSerializer, AdminUserSerializer,
+    UserProfileSerializer, ChangePasswordSerializer, AdminUserSerializer, AdminPasswordResetSerializer,
 )
 from .permissions import IsSystemAdmin
 
@@ -148,3 +149,23 @@ class AdminUserDetailView(generics.RetrieveUpdateAPIView):
     serializer_class   = AdminUserSerializer
     permission_classes = [IsSystemAdmin]
     queryset           = User.objects.all()
+
+class AdminPasswordResetView(APIView):
+    """
+    POST /api/v1/auth/admin/users/{id}/reset-password/
+    System Administrator only.
+    """
+    permission_classes = [IsSystemAdmin]
+
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+
+        serializer = AdminPasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user.set_password(serializer.validated_data["new_password"])
+        user.save(update_fields=["password"])
+
+        return Response({
+            "message": f"Password reset successfully for {user.email}."
+        }, status=status.HTTP_200_OK)

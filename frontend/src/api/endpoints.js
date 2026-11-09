@@ -66,5 +66,7 @@ export const notificationsApi = {
 export const adminApi = {
   getUsers: (params) => api.get("/auth/admin/users/", { params }),
   updateUser: (id, data) => api.patch(`/auth/admin/users/${id}/`, data),
+  resetUserPassword: (id, data) =>
+  api.post(`/auth/admin/users/${id}/reset-password/`, data),
   getAuditLogs: (params) => api.get("/admin-panel/audit-logs/", { params }),
 };

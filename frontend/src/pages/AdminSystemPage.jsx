@@ -248,6 +248,12 @@ function UsersPanel() {
   const [users, setUsers] = useState(null);
   const [roleFilter, setRoleFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [resetUser, setResetUser] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState("");
 
   const load = () => {
     setLoading(true);
@@ -267,6 +273,43 @@ function UsersPanel() {
     const { data } = await adminApi.updateUser(u.id, { role });
     setUsers((prev) => ({ ...prev, results: prev.results.map((r) => r.id === u.id ? data : r) }));
   };
+
+  const handleResetPassword = async (e) => {
+  e.preventDefault();
+
+  if (newPassword !== confirmPassword) {
+    setResetError("Passwords do not match.");
+    return;
+  }
+
+  setResetting(true);
+  setResetError("");
+
+  try {
+    await adminApi.resetUserPassword(resetUser.id, {
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    });
+
+    alert(`Password reset successfully for ${resetUser.email}.`);
+
+    setResetUser(null);
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowResetPassword(false);
+  } catch (error) {
+    const data = error.response?.data;
+
+    setResetError(
+      data?.new_password?.[0] ||
+      data?.confirm_password?.[0] ||
+      data?.detail ||
+      "Password reset failed. Please try again."
+    );
+  } finally {
+    setResetting(false);
+  }
+};
 
   return (
     <div>
@@ -314,13 +357,28 @@ function UsersPanel() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <button
+                    <div className="flex flex-col items-start gap-2">
+                      <button
                       onClick={() => handleToggleActive(u)}
                       className="text-sm font-medium text-[var(--color-ink)] underline underline-offset-4"
-                    >
-                      {u.is_active ? "Deactivate" : "Reactivate"}
-                    </button>
-                  </td>
+                      >
+                        {u.is_active ? "Deactivate" : "Reactivate"}
+                        </button>
+
+                        <button
+                        onClick={() => {
+                          setResetUser(u);
+                          setNewPassword("");
+                          setConfirmPassword("");
+                          setResetError("");
+                          setShowResetPassword(false);
+                        }}
+                        className="text-sm font-medium text-blue-700 underline underline-offset-4"
+                        >
+                          Reset Password
+                        </button>
+                    </div>
+                 </td>
                 </tr>
               ))}
             </tbody>
@@ -328,6 +386,94 @@ function UsersPanel() {
           {(!users?.results?.length) && (
             <p className="px-4 py-8 text-center text-sm text-[var(--color-slate)]">No users found.</p>
           )}
+        </div>
+      )}
+
+      {resetUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[var(--color-ink)]">
+                Reset Password
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setResetUser(null)}
+                className="text-xl text-gray-500 hover:text-gray-800"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            <p className="mb-4 text-sm text-[var(--color-slate)]">
+              Set a new password for <strong>{resetUser.full_name}</strong>.
+              ({resetUser.email})
+            </p>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  New Password
+                </label>
+                <input
+                  type={showResetPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showResetPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowResetPassword((prev) => !prev)}
+                className="text-sm text-blue-700 underline"
+              >
+                {showResetPassword ? "🙈 Hide passwords" : "👁 Show passwords"}
+              </button>
+
+              {resetError && (
+                <p className="text-sm text-red-600">{resetError}</p>
+              )}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setResetUser(null)}
+                  className="rounded border border-gray-300 px-4 py-2 text-sm"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={resetting}
+                  className="rounded bg-[var(--color-ink)] px-4 py-2 text-sm text-white disabled:opacity-50"
+                >
+                  {resetting ? "Resetting..." : "Reset Password"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

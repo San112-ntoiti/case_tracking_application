@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, LogoutView,
     ProfileView, ChangePasswordView,
-    AdminUserListView, AdminUserDetailView,
+    AdminUserListView, AdminUserDetailView, AdminPasswordResetView,
 )
 
 app_name = "accounts"
@@ -24,4 +24,9 @@ urlpatterns = [
     # System Admin
     path("admin/users/",           AdminUserListView.as_view(),         name="admin-users"),
     path("admin/users/<uuid:pk>/", AdminUserDetailView.as_view(),       name="admin-user-detail"),
+
+    path(
+    "admin/users/<uuid:pk>/reset-password/",
+    AdminPasswordResetView.as_view(),
+    name="admin-user-reset-password",),
 ]

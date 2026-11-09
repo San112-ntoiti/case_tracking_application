@@ -110,3 +110,20 @@ class AdminUserSerializer(serializers.ModelSerializer):
             "is_active", "email_verified", "created_at", "last_login_ip",
         ]
         read_only_fields = ["id", "email", "created_at", "last_login_ip"]
+
+
+class AdminPasswordResetSerializer(serializers.Serializer):
+    """Validate a password reset initiated by a System Administrator."""
+
+    new_password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password]
+    )
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError({
+                "confirm_password": "Passwords do not match."
+            })
+        return attrs
